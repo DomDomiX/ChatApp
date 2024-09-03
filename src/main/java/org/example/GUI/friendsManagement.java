@@ -1,5 +1,8 @@
 package org.example.GUI;
 
+import org.example.Objects.Friend;
+import org.example.Objects.User;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -7,28 +10,33 @@ import java.awt.event.ActionListener;
 import java.sql.*;
 
 public class friendsManagement {
+    private User user;
     private JFrame frame;
     private JList<String> friendsList;
     private JButton addButton;
     private JButton removeButton;
     private DefaultListModel<String> listModel;
 
-    public friendsManagement() {
+    public friendsManagement(DefaultListModel<String> sharedFriendsModel) {
         frame = new JFrame("Friends Management");
         frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         frame.setSize(400, 300);
         frame.setLayout(new BorderLayout());
         frame.setLocationRelativeTo(null); // Centrování okna
 
+        this.user = User.getInstance();
+        if (this.user == null) {
+            JOptionPane.showMessageDialog(frame, "Chyba: uživatel není přihlášen!", "Chyba", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        int userID = user.getId();
+        String userName = user.getName();
+
         // Inicializace seznamu přátel
         listModel = new DefaultListModel<>();
         friendsList = new JList<>(listModel);
         JScrollPane scrollPane = new JScrollPane(friendsList);
-
-        // Přidání demo dat (můžeš nahradit skutečnými daty z databáze)
-        listModel.addElement("Friend 1");
-        listModel.addElement("Friend 2");
-        listModel.addElement("Friend 3");
 
         // Tlačítka pro přidání a odstranění přátel
         addButton = new JButton("Add Friend");
@@ -58,9 +66,19 @@ public class friendsManagement {
                     String name = nameField.getText().trim();
                     String idText = idField.getText().trim();
                     if (!name.isEmpty() && !idText.isEmpty()) {
-                        int id = Integer.parseInt(idText);
-                        String friend = name;
-                        listModel.addElement(friend);
+                        try {
+                            int id = Integer.parseInt(idText);
+                            Friend newFriend = new Friend(id, name);
+                            boolean success = newFriend.FriendRequest(id, userID);
+                            if (success) {
+                                listModel.addElement(newFriend.toString());
+                                sharedFriendsModel.addElement(newFriend.toString());
+                            } else {
+                                JOptionPane.showMessageDialog(frame, "Přidání přítele selhalo!", "Chyba", JOptionPane.ERROR_MESSAGE);
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(frame, "ID musí být číslo!", "Chyba", JOptionPane.ERROR_MESSAGE);
+                        }
                     } else {
                         JOptionPane.showMessageDialog(frame, "Name and ID cannot be empty!", "Input Error", JOptionPane.ERROR_MESSAGE);
                     }
@@ -81,34 +99,5 @@ public class friendsManagement {
 
         // Zobrazení okna
         frame.setVisible(true);
-    }
-
-    public boolean addFriend(String name, int id) {
-        boolean isAuthenticated = false;
-
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/users", "root", "")) {
-            System.out.println("Successfully connected to the database!");
-
-            String name = nameField.getText();
-            String password = new String(passwordField.getPassword());
-            String query = "SELECT * FROM use_info WHERE user_name = ? AND user_password = ?";
-
-            PreparedStatement statement = connection.prepareStatement(query);
-            statement.setString(1, name);
-            statement.setString(2, password);
-
-            ResultSet resultSet = statement.executeQuery();
-
-            if (resultSet.next()) {
-                isAuthenticated = true;
-                System.out.println("Login successful!");
-            } else {
-                System.out.println("Invalid username or password.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return isAuthenticated;
     }
 }

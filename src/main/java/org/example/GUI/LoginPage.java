@@ -1,6 +1,7 @@
 package org.example.GUI;
 
 import org.example.DBConnection;
+import org.example.Objects.User;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -107,7 +108,16 @@ public class LoginPage {
 
             if (resultSet.next()) {
                 isAuthenticated = true;
+                int id = resultSet.getInt("ID");
+                String userName = resultSet.getString("user_name");
+                String userPassword = resultSet.getString("user_password");
+                int numFriends = resultSet.getInt("number_friends");
+
+                // Vytvoření a uložení instance uživatele do Singletonu
+                User user = User.getInstance(id, userName, userPassword, numFriends);
+
                 System.out.println("Login successful!");
+                System.out.println("Loged in as " + userName + " " + id + "!");
             } else {
                 System.out.println("Invalid username or password.");
             }
