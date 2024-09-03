@@ -19,6 +19,25 @@ public class MainPage {
         frame.setSize(1200, 720);
         frame.setLocationRelativeTo(null);
 
+        //Vytvoření Menu
+        JMenuBar menuBar = new JMenuBar();
+
+        JMenu menuSettigns = new JMenu("Settings");
+        JMenuItem changeTheme = new JMenuItem("Change theme");
+
+        JMenu menuFriends = new JMenu("Friends");
+        JMenuItem addFriend = new JMenuItem("Manage friends");
+
+        menuBar.add(menuSettigns);
+        menuBar.add(menuFriends);
+
+        menuSettigns.add(changeTheme);
+        menuFriends.add(addFriend);
+
+        addFriend.addActionListener(e -> new friendsManagement());
+
+        frame.setJMenuBar(menuBar);
+
         // Model pro seznam přátel
         friendsModel = new DefaultListModel<>();
         friendsModel.addElement("Friend 1");
